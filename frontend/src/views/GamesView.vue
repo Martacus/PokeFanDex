@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Gamepad2 } from '@lucide/vue'
+import { Gamepad2, ArrowDownAZ, Clock } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import GameTile from '@/components/GameTile.vue'
 import EditGameDialog from '@/components/EditGameDialog.vue'
@@ -32,12 +32,33 @@ const editing = ref<Game | null>(null)
       <Button variant="outline" size="sm" @click="app.setView('config')">Go to Configuration</Button>
     </div>
 
-    <div
-      v-else
-      class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5"
-    >
-      <GameTile v-for="g in games.games" :key="g.id" :game="g" @edit="editing = $event" />
-    </div>
+    <template v-else>
+      <div class="mb-4 flex items-center justify-end gap-1">
+        <span class="mr-1 text-xs text-muted-foreground">Sort by</span>
+        <Button
+          :variant="games.sortBy === 'name' ? 'secondary' : 'ghost'"
+          size="sm"
+          class="gap-1.5"
+          @click="games.setSortBy('name')"
+        >
+          <ArrowDownAZ class="size-4" />
+          Name
+        </Button>
+        <Button
+          :variant="games.sortBy === 'lastPlayed' ? 'secondary' : 'ghost'"
+          size="sm"
+          class="gap-1.5"
+          @click="games.setSortBy('lastPlayed')"
+        >
+          <Clock class="size-4" />
+          Last played
+        </Button>
+      </div>
+
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5">
+        <GameTile v-for="g in games.sortedGames" :key="g.id" :game="g" @edit="editing = $event" />
+      </div>
+    </template>
 
     <EditGameDialog :game="editing" @update:open="(v) => !v && (editing = null)" />
   </div>

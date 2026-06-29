@@ -1,13 +1,49 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { GameService } from '../../bindings/pokefanlauncher'
 import type { Game, GameCoverOptions } from '../../bindings/pokefanlauncher'
 import { useConfigStore } from './config'
+
+export type SortBy = 'name' | 'lastPlayed'
+
+const SORT_KEY = 'pfl-sort'
+
+function loadSort(): SortBy {
+  const saved = localStorage.getItem(SORT_KEY)
+  return saved === 'lastPlayed' ? 'lastPlayed' : 'name'
+}
+
+// Parse a backend timestamp to epoch ms; never-played (null / Go zero time) → 0.
+function playedAt(g: Game): number {
+  const v = g.lastPlayed as unknown as string | null
+  if (!v) return 0
+  const t = new Date(v).getTime()
+  return Number.isNaN(t) ? 0 : t
+}
 
 export const useGamesStore = defineStore('games', () => {
   const games = ref<Game[]>([])
   const scanning = ref(false)
   const error = ref<string | null>(null)
+  const sortBy = ref<SortBy>(loadSort())
+
+  // Games ordered by the active sort: most-recently-played first (never-played
+  // last, then alphabetical), or alphabetical by name.
+  const sortedGames = computed(() => {
+    const list = [...games.value]
+    if (sortBy.value === 'lastPlayed') {
+      return list.sort((a, b) => {
+        const diff = playedAt(b) - playedAt(a)
+        return diff !== 0 ? diff : a.name.localeCompare(b.name)
+      })
+    }
+    return list.sort((a, b) => a.name.localeCompare(b.name))
+  })
+
+  function setSortBy(value: SortBy) {
+    sortBy.value = value
+    localStorage.setItem(SORT_KEY, value)
+  }
 
   // Follow-up prompts produced by the most recent scan.
   const pendingCoverChoices = ref<GameCoverOptions[]>([])
@@ -119,6 +155,9 @@ export const useGamesStore = defineStore('games', () => {
     games,
     scanning,
     error,
+    sortBy,
+    sortedGames,
+    setSortBy,
     pendingCoverChoices,
     missingGames,
     load,
