@@ -5,6 +5,10 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as time$0 from "../time/models.js";
+
 /**
  * AppConfig holds app-level settings persisted to config.json.
  */
@@ -59,6 +63,11 @@ export class Game {
      */
     "coverPath": string;
 
+    /**
+     * LastPlayed is when the game was last launched; nil if never played.
+     */
+    "lastPlayed": time$0.Time | null;
+
     /** Creates a new Game instance. */
     constructor($$source: Partial<Game> = {}) {
         if (!("id" in $$source)) {
@@ -75,6 +84,9 @@ export class Game {
         }
         if (!("coverPath" in $$source)) {
             this["coverPath"] = "";
+        }
+        if (!("lastPlayed" in $$source)) {
+            this["lastPlayed"] = null;
         }
 
         Object.assign(this, $$source);

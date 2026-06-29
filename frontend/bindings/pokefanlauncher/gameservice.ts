@@ -25,10 +25,13 @@ export function GetImageDataURL(path: string): $CancellablePromise<string> {
 }
 
 /**
- * LaunchGame starts the game's executable detached, leaving the launcher open.
+ * LaunchGame starts the game's executable detached, leaving the launcher open,
+ * and records the launch time as LastPlayed.
  */
-export function LaunchGame(gameID: string): $CancellablePromise<void> {
-    return $Call.ByID(3121092458, gameID);
+export function LaunchGame(gameID: string): $CancellablePromise<$models.Game> {
+    return $Call.ByID(3121092458, gameID).then(($result: any) => {
+        return $$createType0($result);
+    });
 }
 
 /**
@@ -37,7 +40,7 @@ export function LaunchGame(gameID: string): $CancellablePromise<void> {
  */
 export function ListFolderImages(gameID: string): $CancellablePromise<string[]> {
     return $Call.ByID(3121223433, gameID).then(($result: any) => {
-        return $$createType0($result);
+        return $$createType1($result);
     });
 }
 
@@ -83,7 +86,7 @@ export function Scan(root: string): $CancellablePromise<$models.ScanResult> {
  */
 export function SetCover(gameID: string, imagePath: string): $CancellablePromise<$models.Game> {
     return $Call.ByID(1556266360, gameID, imagePath).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType0($result);
     });
 }
 
@@ -92,12 +95,12 @@ export function SetCover(gameID: string, imagePath: string): $CancellablePromise
  */
 export function UpdateGame(game: $models.Game): $CancellablePromise<$models.Game> {
     return $Call.ByID(2417788572, game).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType0($result);
     });
 }
 
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = $models.Game.createFrom;
-const $$createType2 = $Create.Array($$createType1);
+const $$createType0 = $models.Game.createFrom;
+const $$createType1 = $Create.Array($Create.Any);
+const $$createType2 = $Create.Array($$createType0);
 const $$createType3 = $models.ScanResult.createFrom;

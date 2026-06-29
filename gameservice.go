@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -32,6 +33,8 @@ type Game struct {
 	FolderPath string `json:"folderPath"` // absolute path to the game subfolder
 	ExePath    string `json:"exePath"`    // absolute path to the chosen executable
 	CoverPath  string `json:"coverPath"`  // absolute path to chosen cover, or "" for default
+	// LastPlayed is when the game was last launched; nil if never played.
+	LastPlayed *time.Time `json:"lastPlayed"`
 }
 
 // GameCoverOptions lists candidate cover images discovered for a newly added
@@ -273,28 +276,39 @@ func (s *GameService) UpdateGame(game Game) (Game, error) {
 	return game, nil
 }
 
-// LaunchGame starts the game's executable detached, leaving the launcher open.
-func (s *GameService) LaunchGame(gameID string) error {
-	s.mu.RLock()
+// LaunchGame starts the game's executable detached, leaving the launcher open,
+// and records the launch time as LastPlayed.
+func (s *GameService) LaunchGame(gameID string) (Game, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	g, err := s.loadGame(gameID)
-	s.mu.RUnlock()
 	if err != nil {
-		return err
+		return Game{}, err
 	}
 	if g.ExePath == "" {
-		return fmt.Errorf("game %q has no executable set", g.Name)
+		return Game{}, fmt.Errorf("game %q has no executable set", g.Name)
 	}
 	if _, err := os.Stat(g.ExePath); err != nil {
-		return fmt.Errorf("executable %q: %w", g.ExePath, err)
+		return Game{}, fmt.Errorf("executable %q: %w", g.ExePath, err)
 	}
 
 	cmd := exec.Command(g.ExePath)
 	cmd.Dir = g.FolderPath // run from the game's folder so relative assets resolve
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("launch %q: %w", g.Name, err)
+		return Game{}, fmt.Errorf("launch %q: %w", g.Name, err)
 	}
 	// Release so the game keeps running independently of the launcher.
-	return cmd.Process.Release()
+	if err := cmd.Process.Release(); err != nil {
+		return Game{}, fmt.Errorf("release process for %q: %w", g.Name, err)
+	}
+
+	now := time.Now()
+	g.LastPlayed = &now
+	if err := s.saveGame(g); err != nil {
+		return Game{}, err
+	}
+	return g, nil
 }
 
 // RemoveGame deletes the game's json and any copied cover. It does not touch the

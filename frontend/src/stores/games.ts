@@ -47,7 +47,10 @@ export const useGamesStore = defineStore('games', () => {
   async function launch(gameId: string) {
     error.value = null
     try {
-      await GameService.LaunchGame(gameId)
+      const updated = await GameService.LaunchGame(gameId)
+      // Reflect the new lastPlayed timestamp in the local list.
+      const idx = games.value.findIndex((g) => g.id === updated.id)
+      if (idx !== -1) games.value[idx] = updated
     } catch (e) {
       error.value = String(e)
     }
