@@ -1,13 +1,12 @@
 # Build & Commands
 
-## Task Commands
+## Commands
 
 | Command | Description |
 |---------|-------------|
-| `task dev` | Dev mode with hot-reload |
-| `task build` | Build for current platform |
-| `task run` | Run the built application |
-| `task package` | Create installer (NSIS on Windows) |
+| `wails3 dev` | Dev mode with hot-reload (also: `task dev`) |
+| `wails3 build` | Build for current platform (also: `task build`) |
+| `wails3 package` | Create installer (NSIS on Windows, also: `task package`) |
 
 ## Codegen & Verification
 

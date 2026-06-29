@@ -1,4 +1,4 @@
-module changeme
+module pokefanlauncher
 
 go 1.25.0
 
