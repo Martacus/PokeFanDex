@@ -17,10 +17,10 @@ const games = useGamesStore()
 // Resolve one game at a time: always show the first pending choice.
 const current = computed(() => games.pendingCoverChoices[0] ?? null)
 
-async function choose(png: string) {
+async function choose(image: string) {
   if (!current.value) return
   const gameId = current.value.gameId
-  await games.setCover(gameId, png)
+  await games.setCover(gameId, image)
   games.dismissCoverChoice(gameId)
 }
 
@@ -44,10 +44,10 @@ function skip() {
 
       <div v-if="current" class="grid max-h-80 grid-cols-3 gap-3 overflow-y-auto py-2">
         <CoverCandidate
-          v-for="png in current.pngs"
-          :key="png"
-          :path="png"
-          @select="choose(png)"
+          v-for="image in current.images"
+          :key="image"
+          :path="image"
+          @select="choose(image)"
         />
       </div>
 

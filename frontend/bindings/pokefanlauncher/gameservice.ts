@@ -32,12 +32,30 @@ export function LaunchGame(gameID: string): $CancellablePromise<void> {
 }
 
 /**
+ * ListFolderImages returns the image files directly inside a game's folder, so
+ * the edit dialog can offer covers from the folder. gameID identifies the game.
+ */
+export function ListFolderImages(gameID: string): $CancellablePromise<string[]> {
+    return $Call.ByID(3121223433, gameID).then(($result: any) => {
+        return $$createType0($result);
+    });
+}
+
+/**
  * ListGames reads every games/*.json, sorted by name (case-insensitive).
  */
 export function ListGames(): $CancellablePromise<$models.Game[]> {
     return $Call.ByID(2522020450).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType2($result);
     });
+}
+
+/**
+ * PickCoverImage opens a native file dialog filtered to image types and returns
+ * the chosen path (empty string if cancelled). The frontend then calls SetCover.
+ */
+export function PickCoverImage(): $CancellablePromise<string> {
+    return $Call.ByID(3400624334);
 }
 
 /**
@@ -55,16 +73,17 @@ export function RemoveGame(gameID: string): $CancellablePromise<void> {
  */
 export function Scan(root: string): $CancellablePromise<$models.ScanResult> {
     return $Call.ByID(88121630, root).then(($result: any) => {
-        return $$createType2($result);
+        return $$createType3($result);
     });
 }
 
 /**
- * SetCover copies the chosen png into covers/{id}.png and updates the game.
+ * SetCover points a game's cover at the given image path and persists it. An
+ * empty path clears the cover (falls back to the default).
  */
-export function SetCover(gameID: string, pngPath: string): $CancellablePromise<$models.Game> {
-    return $Call.ByID(1556266360, gameID, pngPath).then(($result: any) => {
-        return $$createType0($result);
+export function SetCover(gameID: string, imagePath: string): $CancellablePromise<$models.Game> {
+    return $Call.ByID(1556266360, gameID, imagePath).then(($result: any) => {
+        return $$createType1($result);
     });
 }
 
@@ -73,11 +92,12 @@ export function SetCover(gameID: string, pngPath: string): $CancellablePromise<$
  */
 export function UpdateGame(game: $models.Game): $CancellablePromise<$models.Game> {
     return $Call.ByID(2417788572, game).then(($result: any) => {
-        return $$createType0($result);
+        return $$createType1($result);
     });
 }
 
 // Private type creation functions
-const $$createType0 = $models.Game.createFrom;
-const $$createType1 = $Create.Array($$createType0);
-const $$createType2 = $models.ScanResult.createFrom;
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = $models.Game.createFrom;
+const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = $models.ScanResult.createFrom;

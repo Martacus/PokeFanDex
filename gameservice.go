@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -15,11 +14,16 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // exeExtensions are the executable file types a scan recognizes. Only ".exe"
 // for now; more can be added here later.
 var exeExtensions = []string{".exe"}
+
+// imageExtensions are the cover-image file types a scan recognizes.
+var imageExtensions = []string{".png", ".jpg", ".jpeg", ".webp"}
 
 // Game is a single launchable fan game. Persisted as games/{id}.json.
 type Game struct {
@@ -35,7 +39,7 @@ type Game struct {
 type GameCoverOptions struct {
 	GameID string   `json:"gameId"`
 	Name   string   `json:"name"`
-	Pngs   []string `json:"pngs"` // candidate .png paths in the folder
+	Images []string `json:"images"` // candidate image paths in the folder
 }
 
 // ScanResult is returned by Scan so the frontend can drive follow-up prompts.
@@ -58,15 +62,6 @@ func (s *GameService) gamesDir() (string, error) {
 		return "", err
 	}
 	return filepath.Join(dir, "games"), nil
-}
-
-// coversDir returns the directory holding copied cover images.
-func (s *GameService) coversDir() (string, error) {
-	dir, err := dataDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(dir, "covers"), nil
 }
 
 // ListGames reads every games/*.json, sorted by name (case-insensitive).
@@ -143,8 +138,15 @@ func (s *GameService) Scan(root string) (ScanResult, error) {
 		folder := filepath.Join(root, e.Name())
 		seen[folder] = true
 
-		if _, ok := byFolder[folder]; ok {
-			continue // already known; leave user edits untouched
+		if known, ok := byFolder[folder]; ok {
+			// Already known; leave user edits untouched, but try to fill in a
+			// cover if it still doesn't have a valid one.
+			if s.assignCover(&known, folder, &result) {
+				if err := s.saveGame(known); err != nil {
+					return ScanResult{}, err
+				}
+			}
+			continue
 		}
 
 		exe := findExecutable(folder, e.Name())
@@ -158,18 +160,12 @@ func (s *GameService) Scan(root string) (ScanResult, error) {
 			FolderPath: folder,
 			ExePath:    exe,
 		}
+		// A single image is auto-assigned; multiple are queued for the user.
+		s.assignCover(&g, folder, &result)
 		if err := s.saveGame(g); err != nil {
 			return ScanResult{}, err
 		}
 		result.Added = append(result.Added, g)
-
-		if pngs := findPngs(folder); len(pngs) > 0 {
-			result.NeedsCoverChoice = append(result.NeedsCoverChoice, GameCoverOptions{
-				GameID: g.ID,
-				Name:   g.Name,
-				Pngs:   pngs,
-			})
-		}
 	}
 
 	// Any known game whose folder is no longer present is reported as missing.
@@ -184,8 +180,9 @@ func (s *GameService) Scan(root string) (ScanResult, error) {
 	return result, nil
 }
 
-// SetCover copies the chosen png into covers/{id}.png and updates the game.
-func (s *GameService) SetCover(gameID, pngPath string) (Game, error) {
+// SetCover points a game's cover at the given image path and persists it. An
+// empty path clears the cover (falls back to the default).
+func (s *GameService) SetCover(gameID, imagePath string) (Game, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -193,24 +190,70 @@ func (s *GameService) SetCover(gameID, pngPath string) (Game, error) {
 	if err != nil {
 		return Game{}, err
 	}
-
-	coversDir, err := s.coversDir()
-	if err != nil {
-		return Game{}, err
+	if imagePath != "" {
+		if _, err := os.Stat(imagePath); err != nil {
+			return Game{}, fmt.Errorf("cover image %q: %w", imagePath, err)
+		}
 	}
-	if err := os.MkdirAll(coversDir, 0o755); err != nil {
-		return Game{}, fmt.Errorf("create covers dir: %w", err)
-	}
-	dest := filepath.Join(coversDir, gameID+".png")
-	if err := copyFile(pngPath, dest); err != nil {
-		return Game{}, fmt.Errorf("copy cover: %w", err)
-	}
-
-	g.CoverPath = dest
+	g.CoverPath = imagePath
 	if err := s.saveGame(g); err != nil {
 		return Game{}, err
 	}
 	return g, nil
+}
+
+// PickCoverImage opens a native file dialog filtered to image types and returns
+// the chosen path (empty string if cancelled). The frontend then calls SetCover.
+func (s *GameService) PickCoverImage() (string, error) {
+	path, err := application.Get().Dialog.OpenFile().
+		CanChooseFiles(true).
+		CanChooseDirectories(false).
+		SetTitle("Select a cover image").
+		AddFilter("Images", "*.png;*.jpg;*.jpeg;*.webp").
+		PromptForSingleSelection()
+	if err != nil {
+		return "", fmt.Errorf("open image dialog: %w", err)
+	}
+	return path, nil
+}
+
+// assignCover gives g a cover from images in folder when it lacks a valid one.
+// A single image is assigned directly; multiple images are queued in result for
+// the user to choose. Returns true if g.CoverPath was modified.
+func (s *GameService) assignCover(g *Game, folder string, result *ScanResult) bool {
+	if g.CoverPath != "" {
+		if _, err := os.Stat(g.CoverPath); err == nil {
+			return false // still has a valid cover
+		}
+	}
+	images := findImages(folder)
+	switch len(images) {
+	case 0:
+		return false
+	case 1:
+		g.CoverPath = images[0]
+		return true
+	default:
+		result.NeedsCoverChoice = append(result.NeedsCoverChoice, GameCoverOptions{
+			GameID: g.ID,
+			Name:   g.Name,
+			Images: images,
+		})
+		return false
+	}
+}
+
+// ListFolderImages returns the image files directly inside a game's folder, so
+// the edit dialog can offer covers from the folder. gameID identifies the game.
+func (s *GameService) ListFolderImages(gameID string) ([]string, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	g, err := s.loadGame(gameID)
+	if err != nil {
+		return nil, err
+	}
+	return findImages(g.FolderPath), nil
 }
 
 // UpdateGame persists user edits to an existing game (name, exe, cover).
@@ -266,14 +309,6 @@ func (s *GameService) RemoveGame(gameID string) error {
 	}
 	if err := os.Remove(filepath.Join(gamesDir, gameID+".json")); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("remove game %q: %w", gameID, err)
-	}
-
-	coversDir, err := s.coversDir()
-	if err != nil {
-		return err
-	}
-	if err := os.Remove(filepath.Join(coversDir, gameID+".png")); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return fmt.Errorf("remove cover for %q: %w", gameID, err)
 	}
 	return nil
 }
@@ -387,40 +422,33 @@ func isExecutable(name string) bool {
 	return false
 }
 
-// findPngs returns absolute paths of .png files directly in folder, sorted.
-func findPngs(folder string) []string {
+// findImages returns absolute paths of recognized image files directly in
+// folder, sorted.
+func findImages(folder string) []string {
 	entries, err := os.ReadDir(folder)
 	if err != nil {
 		return nil
 	}
-	var pngs []string
+	var images []string
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
 		}
-		if strings.ToLower(filepath.Ext(e.Name())) == ".png" {
-			pngs = append(pngs, filepath.Join(folder, e.Name()))
+		if isImage(e.Name()) {
+			images = append(images, filepath.Join(folder, e.Name()))
 		}
 	}
-	sort.Strings(pngs)
-	return pngs
+	sort.Strings(images)
+	return images
 }
 
-// copyFile copies src to dst, truncating dst if it exists.
-func copyFile(src, dst string) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
+// isImage reports whether name has a recognized image extension.
+func isImage(name string) bool {
+	ext := strings.ToLower(filepath.Ext(name))
+	for _, e := range imageExtensions {
+		if ext == e {
+			return true
+		}
 	}
-	defer in.Close()
-
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(out, in); err != nil {
-		out.Close()
-		return err
-	}
-	return out.Close()
+	return false
 }

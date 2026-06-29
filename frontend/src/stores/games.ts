@@ -63,13 +63,34 @@ export const useGamesStore = defineStore('games', () => {
     }
   }
 
-  async function setCover(gameId: string, pngPath: string) {
+  async function setCover(gameId: string, imagePath: string) {
     error.value = null
     try {
-      await GameService.SetCover(gameId, pngPath)
+      await GameService.SetCover(gameId, imagePath)
       await load()
     } catch (e) {
       error.value = String(e)
+    }
+  }
+
+  // Opens the native image picker and returns the chosen path (empty if
+  // cancelled). Does not persist — the caller decides when to save.
+  async function chooseCoverFile(): Promise<string> {
+    error.value = null
+    try {
+      return await GameService.PickCoverImage()
+    } catch (e) {
+      error.value = String(e)
+      return ''
+    }
+  }
+
+  async function listFolderImages(gameId: string): Promise<string[]> {
+    try {
+      return await GameService.ListFolderImages(gameId)
+    } catch (e) {
+      error.value = String(e)
+      return []
     }
   }
 
@@ -102,6 +123,8 @@ export const useGamesStore = defineStore('games', () => {
     launch,
     update,
     setCover,
+    chooseCoverFile,
+    listFolderImages,
     remove,
     dismissCoverChoice,
     dismissMissing,

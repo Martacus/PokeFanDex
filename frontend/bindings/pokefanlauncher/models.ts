@@ -98,9 +98,9 @@ export class GameCoverOptions {
     "name": string;
 
     /**
-     * candidate .png paths in the folder
+     * candidate image paths in the folder
      */
-    "pngs": string[];
+    "images": string[];
 
     /** Creates a new GameCoverOptions instance. */
     constructor($$source: Partial<GameCoverOptions> = {}) {
@@ -110,8 +110,8 @@ export class GameCoverOptions {
         if (!("name" in $$source)) {
             this["name"] = "";
         }
-        if (!("pngs" in $$source)) {
-            this["pngs"] = [];
+        if (!("images" in $$source)) {
+            this["images"] = [];
         }
 
         Object.assign(this, $$source);
@@ -123,8 +123,8 @@ export class GameCoverOptions {
     static createFrom($$source: any = {}): GameCoverOptions {
         const $$createField2_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("pngs" in $$parsedSource) {
-            $$parsedSource["pngs"] = $$createField2_0($$parsedSource["pngs"]);
+        if ("images" in $$parsedSource) {
+            $$parsedSource["images"] = $$createField2_0($$parsedSource["images"]);
         }
         return new GameCoverOptions($$parsedSource as Partial<GameCoverOptions>);
     }
