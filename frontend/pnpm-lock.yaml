@@ -11,6 +11,9 @@ importers:
       '@lucide/vue':
         specifier: ^1.21.0
         version: 1.21.0(vue@3.5.38(typescript@4.9.5))
+      '@vueuse/core':
+        specifier: ^14.3.0
+        version: 14.3.0(vue@3.5.38(typescript@4.9.5))
       '@wailsio/runtime':
         specifier: latest
         version: 3.0.0-alpha.94
@@ -38,6 +41,9 @@ importers:
       vue:
         specifier: ^3.2.45
         version: 3.5.38(typescript@4.9.5)
+      vue-sonner:
+        specifier: ^2.0.9
+        version: 2.0.9
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.3.1
@@ -2271,6 +2277,20 @@ packages:
   vue-metamorph@3.3.4:
     resolution: {integrity: sha512-WZ1xzHrmYh9UiZ7OC9eG1ASzgSybEB10jhop+k5KzMY9I1JmRKdreqUYzbV3hOnOMvLhyDn7y6f62mLE2jHFSg==}
     hasBin: true
+
+  vue-sonner@2.0.9:
+    resolution: {integrity: sha512-i6BokNlNDL93fpzNxN/LZSn6D6MzlO+i3qXt6iVZne3x1k7R46d5HlFB4P8tYydhgqOrRbIZEsnRd3kG7qGXyw==}
+    peerDependencies:
+      '@nuxt/kit': ^4.0.3
+      '@nuxt/schema': ^4.0.3
+      nuxt: ^4.0.3
+    peerDependenciesMeta:
+      '@nuxt/kit':
+        optional: true
+      '@nuxt/schema':
+        optional: true
+      nuxt:
+        optional: true
 
   vue-template-compiler@2.7.16:
     resolution: {integrity: sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ==}
@@ -4548,6 +4568,8 @@ snapshots:
     transitivePeerDependencies:
       - eslint
       - supports-color
+
+  vue-sonner@2.0.9: {}
 
   vue-template-compiler@2.7.16:
     dependencies:

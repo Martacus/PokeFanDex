@@ -1,12 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-export const useAppStore = defineStore('app', () => {
-  const error = ref<string | null>(null)
+export type View = 'games' | 'config'
 
-  function clearError() {
-    error.value = null
+export const useAppStore = defineStore('app', () => {
+  const currentView = ref<View>('games')
+
+  function setView(view: View) {
+    currentView.value = view
   }
 
-  return { error, clearError }
+  return { currentView, setView }
 })
