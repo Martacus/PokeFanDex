@@ -4,7 +4,7 @@ import { Play, Pencil } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { useGamesStore } from '@/stores/games'
 import { useImageUrl } from '@/composables/useImageUrl'
-import { relativeTime } from '@/lib/datetime'
+import { relativeTime, formatPlaytime } from '@/lib/datetime'
 import type { Game } from '../../bindings/pokefanlauncher'
 
 const props = defineProps<{ game: Game }>()
@@ -15,6 +15,7 @@ const coverPath = computed(() => props.game.coverPath)
 const coverUrl = useImageUrl(toRef(coverPath))
 
 const lastPlayed = computed(() => relativeTime(props.game.lastPlayed as unknown as string | null))
+const playtime = computed(() => formatPlaytime(props.game.playtimeSeconds))
 </script>
 
 <template>
@@ -23,6 +24,7 @@ const lastPlayed = computed(() => relativeTime(props.game.lastPlayed as unknown 
       <p class="truncate text-sm font-medium" :title="game.name">{{ game.name }}</p>
       <p class="truncate text-xs text-muted-foreground">
         {{ lastPlayed ? `Last played ${lastPlayed}` : 'Never played' }}
+        <template v-if="playtime"> · {{ playtime }} played</template>
       </p>
     </div>
 

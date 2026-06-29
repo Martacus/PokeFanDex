@@ -15,6 +15,12 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+func init() {
+	// Registered so the binding generator produces a typed event API. The data
+	// is the affected game's ID.
+	application.RegisterEvent[string]("game:updated")
+}
+
 // main initializes the application, registers services, creates the main window,
 // and runs the app, logging any error that occurs.
 func main() {

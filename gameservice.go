@@ -35,7 +35,14 @@ type Game struct {
 	CoverPath  string `json:"coverPath"`  // absolute path to chosen cover, or "" for default
 	// LastPlayed is when the game was last launched; nil if never played.
 	LastPlayed *time.Time `json:"lastPlayed"`
+	// PlaytimeSeconds is the cumulative time the game's process has run, summed
+	// across all completed sessions tracked by the launcher.
+	PlaytimeSeconds int64 `json:"playtimeSeconds"`
 }
+
+// gameUpdatedEvent is emitted to the frontend when a game's record changes in
+// the background (e.g. a play session ended and playtime was added).
+const gameUpdatedEvent = "game:updated"
 
 // GameCoverOptions lists candidate cover images discovered for a newly added
 // game so the frontend can prompt the user to pick one.
@@ -295,20 +302,47 @@ func (s *GameService) LaunchGame(gameID string) (Game, error) {
 
 	cmd := exec.Command(g.ExePath)
 	cmd.Dir = g.FolderPath // run from the game's folder so relative assets resolve
+	start := time.Now()
 	if err := cmd.Start(); err != nil {
 		return Game{}, fmt.Errorf("launch %q: %w", g.Name, err)
 	}
-	// Release so the game keeps running independently of the launcher.
-	if err := cmd.Process.Release(); err != nil {
-		return Game{}, fmt.Errorf("release process for %q: %w", g.Name, err)
-	}
 
-	now := time.Now()
-	g.LastPlayed = &now
+	// Keep the process handle and wait in the background so we can measure how
+	// long the game ran and add it to the cumulative playtime when it exits.
+	go s.trackPlaytime(g.ID, cmd, start)
+
+	g.LastPlayed = &start
 	if err := s.saveGame(g); err != nil {
 		return Game{}, err
 	}
 	return g, nil
+}
+
+// trackPlaytime waits for a launched game's process to exit, then adds the
+// elapsed time to the game's cumulative playtime and notifies the frontend.
+func (s *GameService) trackPlaytime(gameID string, cmd *exec.Cmd, start time.Time) {
+	// Wait returns when the process exits (or errors); either way the session is
+	// over, so measure the elapsed wall-clock time.
+	_ = cmd.Wait()
+	elapsed := int64(time.Since(start).Seconds())
+	if elapsed <= 0 {
+		return
+	}
+
+	s.mu.Lock()
+	g, err := s.loadGame(gameID)
+	if err != nil {
+		s.mu.Unlock()
+		return // game was removed while playing; nothing to record
+	}
+	g.PlaytimeSeconds += elapsed
+	saveErr := s.saveGame(g)
+	s.mu.Unlock()
+
+	if saveErr == nil {
+		// Let the frontend refresh the tile with the new playtime.
+		application.Get().Event.Emit(gameUpdatedEvent, gameID)
+	}
 }
 
 // RemoveGame deletes the game's json and any copied cover. It does not touch the

@@ -68,6 +68,12 @@ export class Game {
      */
     "lastPlayed": time$0.Time | null;
 
+    /**
+     * PlaytimeSeconds is the cumulative time the game's process has run, summed
+     * across all completed sessions tracked by the launcher.
+     */
+    "playtimeSeconds": number;
+
     /** Creates a new Game instance. */
     constructor($$source: Partial<Game> = {}) {
         if (!("id" in $$source)) {
@@ -87,6 +93,9 @@ export class Game {
         }
         if (!("lastPlayed" in $$source)) {
             this["lastPlayed"] = null;
+        }
+        if (!("playtimeSeconds" in $$source)) {
+            this["playtimeSeconds"] = 0;
         }
 
         Object.assign(this, $$source);

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { Events } from '@wailsio/runtime'
 import { GameService } from '../../bindings/pokefanlauncher'
 import type { Game, GameCoverOptions } from '../../bindings/pokefanlauncher'
 import { useConfigStore } from './config'
@@ -150,6 +151,12 @@ export const useGamesStore = defineStore('games', () => {
   function dismissMissing(gameId: string) {
     missingGames.value = missingGames.value.filter((g) => g.id !== gameId)
   }
+
+  // The backend emits "game:updated" when a play session ends and playtime is
+  // added; reload so tiles reflect the new total. Registered once per store.
+  Events.On('game:updated', () => {
+    load()
+  })
 
   return {
     games,
