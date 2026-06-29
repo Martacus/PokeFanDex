@@ -55,7 +55,7 @@ const editing = ref<Game | null>(null)
         </Button>
       </div>
 
-      <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5">
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-5">
         <GameTile v-for="g in games.sortedGames" :key="g.id" :game="g" @edit="editing = $event" />
       </div>
     </template>
