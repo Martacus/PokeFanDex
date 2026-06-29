@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=My Product
+Comment=A PokeFanLauncher application
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/pokefanlauncher.exe %u
+Terminal=false
+Type=Application
+Icon=pokefanlauncher.exe
+Categories=Utility;
+StartupWMClass=pokefanlauncher.exe
+
+ 
