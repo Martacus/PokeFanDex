@@ -1,6 +1,6 @@
-# PokeFanLauncher — MVP Design
+# Simple Launcher — MVP Design
 
-A desktop launcher for fan-made Pokémon games. The user points the app at a
+A desktop launcher for your games and apps. The user points the app at a
 folder; the app scans subfolders for game executables, builds a library, and
 lets the user launch each game from a tile with cover art, name, and Play/Edit
 controls.
@@ -45,7 +45,7 @@ All data lives under the per-user appdata dir, resolved in Go via
 `os.UserConfigDir()` (on Windows → `%AppData%`):
 
 ```
-%AppData%/PokeFanLauncher/
+%AppData%/Simple Launcher/
 ├── config.json                 # app config (games root folder, preferences)
 ├── games/
 │   ├── {gameId}.json           # one file per game

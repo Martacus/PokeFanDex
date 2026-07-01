@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { Events } from '@wailsio/runtime'
-import { GameService } from '../../bindings/pokefanlauncher'
-import type { Game, GameCoverOptions } from '../../bindings/pokefanlauncher'
+import { GameService } from '../../bindings/simplelauncher'
+import type { Game, GameCoverOptions } from '../../bindings/simplelauncher'
 import { useConfigStore } from './config'
 
 export type SortBy = 'name' | 'lastPlayed'

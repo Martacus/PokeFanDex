@@ -8,10 +8,10 @@ import (
 )
 
 // appName is the folder name used under the OS appdata directory.
-const appName = "PokeFanLauncher"
+const appName = "Simple Launcher"
 
 // dataDir returns the per-user data directory for the app, creating it if
-// necessary. On Windows this resolves to %AppData%/PokeFanLauncher.
+// necessary. On Windows this resolves to %AppData%/Simple Launcher.
 func dataDir() (string, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {

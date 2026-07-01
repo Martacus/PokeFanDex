@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ConfigService } from '../../bindings/pokefanlauncher'
+import { ConfigService } from '../../bindings/simplelauncher'
 
 export const useConfigStore = defineStore('config', () => {
   const gamesFolder = ref('')

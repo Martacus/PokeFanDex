@@ -25,8 +25,8 @@ func init() {
 // and runs the app, logging any error that occurs.
 func main() {
 	app := application.New(application.Options{
-		Name:        "PokeFanLauncher",
-		Description: "A launcher for fan-made Pokémon games",
+		Name:        "Simple Launcher",
+		Description: "A simple launcher for your games and apps",
 		Services: []application.Service{
 			application.NewService(&AppService{}),
 			application.NewService(&ConfigService{}),
@@ -41,7 +41,7 @@ func main() {
 	})
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:            "PokeFanLauncher",
+		Title:            "Simple Launcher",
 		Width:            1100,
 		Height:           720,
 		MinWidth:         800,

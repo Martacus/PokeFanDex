@@ -2,7 +2,7 @@
 import { Gamepad2, Settings, LogOut } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { useAppStore, type View } from '@/stores/app'
-import { AppService } from '../../../bindings/pokefanlauncher'
+import { AppService } from '../../../bindings/simplelauncher'
 
 const app = useAppStore()
 
@@ -19,7 +19,7 @@ function exit() {
 <template>
   <aside class="flex h-full w-56 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
     <div class="px-4 py-5">
-      <span class="text-lg font-semibold tracking-tight">PokeFanLauncher</span>
+      <span class="text-lg font-semibold tracking-tight">Simple Launcher</span>
     </div>
 
     <nav class="flex flex-1 flex-col gap-1 px-2">

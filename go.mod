@@ -1,4 +1,4 @@
-module pokefanlauncher
+module simplelauncher
 
 go 1.25.0
 

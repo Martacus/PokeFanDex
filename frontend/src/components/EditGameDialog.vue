@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import CoverCandidate from '@/components/CoverCandidate.vue'
 import { useGamesStore } from '@/stores/games'
 import { useImageUrl } from '@/composables/useImageUrl'
-import { Game } from '../../bindings/pokefanlauncher'
+import { Game } from '../../bindings/simplelauncher'
 
 const props = defineProps<{ game: Game | null }>()
 const emit = defineEmits<{ 'update:open': [value: boolean] }>()

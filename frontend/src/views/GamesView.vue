@@ -6,7 +6,7 @@ import GameTile from '@/components/GameTile.vue'
 import EditGameDialog from '@/components/EditGameDialog.vue'
 import { useGamesStore } from '@/stores/games'
 import { useAppStore } from '@/stores/app'
-import type { Game } from '../../bindings/pokefanlauncher'
+import type { Game } from '../../bindings/simplelauncher'
 
 const games = useGamesStore()
 const app = useAppStore()

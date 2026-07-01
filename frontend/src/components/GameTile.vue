@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useGamesStore } from '@/stores/games'
 import { useImageUrl } from '@/composables/useImageUrl'
 import { relativeTime, formatPlaytime } from '@/lib/datetime'
-import type { Game } from '../../bindings/pokefanlauncher'
+import type { Game } from '../../bindings/simplelauncher'
 
 const props = defineProps<{ game: Game }>()
 const emit = defineEmits<{ edit: [game: Game] }>()

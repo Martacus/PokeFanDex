@@ -1,5 +1,5 @@
 import { ref, watchEffect, type Ref } from 'vue'
-import { GameService } from '../../bindings/pokefanlauncher'
+import { GameService } from '../../bindings/simplelauncher'
 
 // Module-level cache so the same file path is only read/encoded once.
 const cache = new Map<string, string>()

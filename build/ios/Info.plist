@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>pokefanlauncher.exe</string>
+    <string>simplelauncher.exe</string>
     <key>CFBundleIdentifier</key>
-    <string>com.mart.pokefanlauncher</string>
+    <string>com.mart.simplelauncher</string>
     <key>CFBundleName</key>
     <string>My Product</string>
     <key>CFBundleDisplayName</key>
